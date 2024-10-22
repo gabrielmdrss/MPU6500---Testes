@@ -125,8 +125,17 @@ int main(void)
 	DMA1_Config();
 	PB9_Int_Config();
 
-//	calibration_DMT();
+
+//	HAL_FLASH_Unlock();
+//	FLASH_ClearFlag(FLASH_FLAG_EOP | FLASH_FLAG_OPERR | FLASH_FLAG_WRPERR | FLASH_FLAG_PGAERR | FLASH_FLAG_PGSERR );
+//	FLASH_Erase_Sector(FLASH_SECTOR_11, FLASH_VOLTAGE_RANGE_3);
+//	HAL_FLASH_Lock();
+
+	if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_7) == GPIO_PIN_SET)
+		calibration_DMT();
+	else
 	leitura_flash();
+
 
   while (1) {
 
@@ -141,11 +150,19 @@ int main(void)
 			KalmanAnglePitch = Kalman1DOutput[0];
 			KalmanUncertaintyAnglePitch = Kalman1DOutput[1];
 
-			printf("ROLL = %.1f°  PITCH = = %.1f°\n", KalmanAngleRoll, KalmanAnglePitch);
+//			printf("ROLL = %.1f°  PITCH = = %.1f°\n", KalmanAngleRoll, KalmanAnglePitch);
+
+			printf("ACCEL X = %.1f\n", ACCEL_X);
+			printf("ACCEL Y = %.1f\n", ACCEL_Y);
+			printf("ACCEL Z = %.2f\n", ACCEL_Z);
+			printf("GYRO X = %.1f\n", GYRO_X);
+			printf("GYRO Y = %.1f\n", GYRO_Y);
+			printf("GYRO Z = %.1f\n\n\n", GYRO_Z);
 
 			Sensor_Data_Ready = FALSE;
 
 		}
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -285,12 +302,18 @@ static void MX_GPIO_Init(void)
 /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
-  __HAL_RCC_GPIOA_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin : PA7 */
+  GPIO_InitStruct.Pin = GPIO_PIN_7;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PD12 */
   GPIO_InitStruct.Pin = GPIO_PIN_12;

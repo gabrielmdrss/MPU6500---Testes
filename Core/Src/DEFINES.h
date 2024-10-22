@@ -264,7 +264,7 @@ void calibration_DMT(void){
 	printf("O DMT já foi calibrado!");
 
 
-//	while(1);
+	while(1);
 
 }
 
@@ -309,6 +309,61 @@ void FLASH_ClearFlag(uint32_t FLASH_FLAG)
 
   /* Clear the flags */
   FLASH->SR = FLASH_FLAG;
+}
+
+/**
+  * @brief  Erase the specified FLASH memory sector
+  * @param  Sector FLASH sector to erase
+  *         The value of this parameter depend on device used within the same series
+  * @param  VoltageRange The device voltage range which defines the erase parallelism.
+  *          This parameter can be one of the following values:
+  *            @arg FLASH_VOLTAGE_RANGE_1: when the device voltage range is 1.8V to 2.1V,
+  *                                  the operation will be done by byte (8-bit)
+  *            @arg FLASH_VOLTAGE_RANGE_2: when the device voltage range is 2.1V to 2.7V,
+  *                                  the operation will be done by half word (16-bit)
+  *            @arg FLASH_VOLTAGE_RANGE_3: when the device voltage range is 2.7V to 3.6V,
+  *                                  the operation will be done by word (32-bit)
+  *            @arg FLASH_VOLTAGE_RANGE_4: when the device voltage range is 2.7V to 3.6V + External Vpp,
+  *                                  the operation will be done by double word (64-bit)
+  *
+  * @retval None
+  */
+void FLASH_Erase_Sector(uint32_t Sector, uint8_t VoltageRange)
+{
+  uint32_t tmp_psize = 0U;
+
+  /* Check the parameters */
+  assert_param(IS_FLASH_SECTOR(Sector));
+  assert_param(IS_VOLTAGERANGE(VoltageRange));
+
+  if (VoltageRange == FLASH_VOLTAGE_RANGE_1)
+  {
+    tmp_psize = FLASH_PSIZE_BYTE;
+  }
+  else if (VoltageRange == FLASH_VOLTAGE_RANGE_2)
+  {
+    tmp_psize = FLASH_PSIZE_HALF_WORD;
+  }
+  else if (VoltageRange == FLASH_VOLTAGE_RANGE_3)
+  {
+    tmp_psize = FLASH_PSIZE_WORD;
+  }
+  else
+  {
+    tmp_psize = FLASH_PSIZE_DOUBLE_WORD;
+  }
+
+  /* Need to add offset of 4 when sector higher than FLASH_SECTOR_11 */
+  if (Sector > FLASH_SECTOR_11)
+  {
+    Sector += 4U;
+  }
+  /* If the previous operation is completed, proceed to erase the sector */
+  CLEAR_BIT(FLASH->CR, FLASH_CR_PSIZE);
+  FLASH->CR |= tmp_psize;
+  CLEAR_BIT(FLASH->CR, FLASH_CR_SNB);
+  FLASH->CR |= FLASH_CR_SER | (Sector << FLASH_CR_SNB_Pos);
+  FLASH->CR |= FLASH_CR_STRT;
 }
 
 #endif /* DEFINES_H_ */
