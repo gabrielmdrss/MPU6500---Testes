@@ -117,14 +117,12 @@ int main(void)
 	printf("\n--------  Exemplo de aplicação de uso MPU-6500 via SPI  --------\n\n");
 
 	MPU6500_Config();
-	MPU6500_Offset_Cancellation();
 
 	  //Configuração do acesso via DMA
 	SPI2->CR2 |= SPI_CR2_TXDMAEN;	//habilita solicitações DMA no TX do SPI2
 	SPI2->CR2 |= SPI_CR2_RXDMAEN;	//habilita solicitações DMA no RX do SPI2
 	DMA1_Config();
 	PB9_Int_Config();
-
 
 //	HAL_FLASH_Unlock();
 //	FLASH_ClearFlag(FLASH_FLAG_EOP | FLASH_FLAG_OPERR | FLASH_FLAG_WRPERR | FLASH_FLAG_PGAERR | FLASH_FLAG_PGSERR );
@@ -134,7 +132,7 @@ int main(void)
 	if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_7) == GPIO_PIN_SET)
 		calibration_DMT();
 	else
-	leitura_flash();
+		leitura_flash();
 
 
   while (1) {
@@ -150,14 +148,35 @@ int main(void)
 			KalmanAnglePitch = Kalman1DOutput[0];
 			KalmanUncertaintyAnglePitch = Kalman1DOutput[1];
 
-//			printf("ROLL = %.1f°  PITCH = = %.1f°\n", KalmanAngleRoll, KalmanAnglePitch);
+			printf("ROLL = %.1f°  PITCH = = %.1f°\n", KalmanAngleRoll, KalmanAnglePitch);
+			printf("TEMP = %.1f°C\n\n\n", TEMP);
 
-			printf("ACCEL X = %.1f\n", ACCEL_X);
-			printf("ACCEL Y = %.1f\n", ACCEL_Y);
-			printf("ACCEL Z = %.2f\n", ACCEL_Z);
-			printf("GYRO X = %.1f\n", GYRO_X);
-			printf("GYRO Y = %.1f\n", GYRO_Y);
-			printf("GYRO Z = %.1f\n\n\n", GYRO_Z);
+//			RAW_ACCEL_X = (((uint16_t) Rx_Data[1] << 8) | (Rx_Data[2]));
+//			RAW_ACCEL_Y = (((uint16_t) Rx_Data[3] << 8) | (Rx_Data[4]));
+//			RAW_ACCEL_Z = (((uint16_t) Rx_Data[5] << 8) | (Rx_Data[6]));
+//			RAW_TEMP = (((int16_t) Rx_Data[7] << 8) | (Rx_Data[8]));
+//			RAW_GYRO_X = (((int16_t) Rx_Data[9] << 8) | (Rx_Data[10]));
+//			RAW_GYRO_Y = (((int16_t) Rx_Data[11] << 8) | (Rx_Data[12]));
+//			RAW_GYRO_Z = (((int16_t) Rx_Data[13] << 8) | (Rx_Data[14]));
+//
+//			ACCEL_X = ((float) RAW_ACCEL_X) * accelScalingFactor;
+//			ACCEL_Y = ((float) RAW_ACCEL_Y) * accelScalingFactor;
+//			ACCEL_Z = ((float) RAW_ACCEL_Z) * accelScalingFactor;
+//
+//			GYRO_X = ((float) RAW_GYRO_X) * gyroScalingFactor;
+//			GYRO_Y = ((float) RAW_GYRO_Y) * gyroScalingFactor;
+//			GYRO_Z = ((float) RAW_GYRO_Z) * gyroScalingFactor;
+//
+//			TEMP = ((float) RAW_TEMP) / 333.87 + 21.0;
+//
+//			printf("Dados do sensor:\n");
+//			printf("ACCEL X = %.1f\n", ACCEL_X);
+//			printf("ACCEL Y = %.1f\n", ACCEL_Y);
+//			printf("ACCEL Z = %.1f\n", ACCEL_Z);
+//			printf("GYRO_X = %.1f°/s\n", GYRO_X);
+//			printf("GYRO_Y = %.1f°/s\n", GYRO_Y);
+//			printf("GYRO_Z = %.1f°/s\n\n", GYRO_Z);
+//			printf("TEMP = %.1f°C\n\n\n", TEMP);
 
 			Sensor_Data_Ready = FALSE;
 

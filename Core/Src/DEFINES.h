@@ -37,7 +37,6 @@ float KalmanAnglePitch=0, KalmanUncertaintyAnglePitch = 2*2;
 float Kalman1DOutput[] = {0,0};
 uint32_t Address = 0x080E0000;
 
-
 uint8_t Rx_Data[15];											//array para recebimento dos dados do sensor
 uint8_t Sensor_Data_Ready = FALSE;								//flag que indica o estado dos dados do sensor após o DMA
 int16_t RAW_ACCEL_X, RAW_ACCEL_Y, RAW_ACCEL_Z;					//valores crus do acelerômetro
@@ -125,6 +124,7 @@ void kalman_1d(float *KalmanState, float *KalmanUncertainty, float *KalmanInput,
   *KalmanUncertainty = *KalmanUncertainty + 0.004 * 0.004 * 4.0 * 4.0;
 
   float KalmanGain = *KalmanUncertainty * 1.0/(1.0**KalmanUncertainty + 3.0 * 3.0);
+//  float KalmanGain = 0.5;
 
   *KalmanState = *KalmanState + KalmanGain * (*KalmanMeasurement - *KalmanState);
   *KalmanUncertainty = (1.0 - KalmanGain) * *KalmanUncertainty;
@@ -139,6 +139,8 @@ void gyro_signals(void) {
 	RAW_GYRO_X = (((int16_t) Rx_Data[9] << 8) | (Rx_Data[10]));
 	RAW_GYRO_Y = (((int16_t) Rx_Data[11] << 8) | (Rx_Data[12]));
 	RAW_GYRO_Z = (((int16_t) Rx_Data[13] << 8) | (Rx_Data[14]));
+	RAW_TEMP = (((int16_t) Rx_Data[7] << 8) | (Rx_Data[8]));
+
 
 	RateRoll = (float) RAW_GYRO_X / 131.0;
 	RatePitch = (float) RAW_GYRO_Y / 131.0;
@@ -146,6 +148,7 @@ void gyro_signals(void) {
 	ACCEL_X = (float) RAW_ACCEL_X / 16384.0;
 	ACCEL_Y = (float) RAW_ACCEL_Y / 16384.0;
 	ACCEL_Z = (float) RAW_ACCEL_Z / 16384.0;
+	TEMP = ((float) RAW_TEMP) / 333.87 + 21.0;
 	AngleRoll = atan(ACCEL_Y / sqrt(ACCEL_X * ACCEL_X + ACCEL_Z * ACCEL_Z)) * 1 / (3.142/180.0);
 	AnglePitch = -atan(ACCEL_X / sqrt(ACCEL_Y * ACCEL_Y + ACCEL_Z * ACCEL_Z)) * 1 /(3.142/180.0);
 }
