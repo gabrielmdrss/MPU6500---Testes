@@ -55,8 +55,10 @@ SPI_HandleTypeDef hspi2;
 UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
-int teste = 0;
-int teste2 = 0;
+
+int contador = 0;
+float RollRef, PitchRef;
+
 
 						//valor cru da temperatura
 
@@ -129,7 +131,7 @@ int main(void)
 //	FLASH_Erase_Sector(FLASH_SECTOR_11, FLASH_VOLTAGE_RANGE_3);
 //	HAL_FLASH_Lock();
 
-	if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_7) == GPIO_PIN_SET)
+	if(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_2) == GPIO_PIN_SET)
 		calibration_DMT();
 	else
 		leitura_flash();
@@ -139,7 +141,7 @@ int main(void)
 
 		if (Sensor_Data_Ready) {
 
-			gyro_signals();
+			inercial_signals();
 
 		    kalman_1d(&KalmanAngleRoll, &KalmanUncertaintyAngleRoll, &RateRoll, &AngleRoll);
 			KalmanAngleRoll = Kalman1DOutput[0];
@@ -148,38 +150,28 @@ int main(void)
 			KalmanAnglePitch = Kalman1DOutput[0];
 			KalmanUncertaintyAnglePitch = Kalman1DOutput[1];
 
-			printf("ROLL = %.1f°  PITCH = = %.1f°\n", KalmanAngleRoll, KalmanAnglePitch);
-			printf("TEMP = %.1f°C\n\n\n", TEMP);
-
-//			RAW_ACCEL_X = (((uint16_t) Rx_Data[1] << 8) | (Rx_Data[2]));
-//			RAW_ACCEL_Y = (((uint16_t) Rx_Data[3] << 8) | (Rx_Data[4]));
-//			RAW_ACCEL_Z = (((uint16_t) Rx_Data[5] << 8) | (Rx_Data[6]));
-//			RAW_TEMP = (((int16_t) Rx_Data[7] << 8) | (Rx_Data[8]));
-//			RAW_GYRO_X = (((int16_t) Rx_Data[9] << 8) | (Rx_Data[10]));
-//			RAW_GYRO_Y = (((int16_t) Rx_Data[11] << 8) | (Rx_Data[12]));
-//			RAW_GYRO_Z = (((int16_t) Rx_Data[13] << 8) | (Rx_Data[14]));
-//
-//			ACCEL_X = ((float) RAW_ACCEL_X) * accelScalingFactor;
-//			ACCEL_Y = ((float) RAW_ACCEL_Y) * accelScalingFactor;
-//			ACCEL_Z = ((float) RAW_ACCEL_Z) * accelScalingFactor;
-//
-//			GYRO_X = ((float) RAW_GYRO_X) * gyroScalingFactor;
-//			GYRO_Y = ((float) RAW_GYRO_Y) * gyroScalingFactor;
-//			GYRO_Z = ((float) RAW_GYRO_Z) * gyroScalingFactor;
-//
-//			TEMP = ((float) RAW_TEMP) / 333.87 + 21.0;
-//
-//			printf("Dados do sensor:\n");
-//			printf("ACCEL X = %.1f\n", ACCEL_X);
-//			printf("ACCEL Y = %.1f\n", ACCEL_Y);
-//			printf("ACCEL Z = %.1f\n", ACCEL_Z);
-//			printf("GYRO_X = %.1f°/s\n", GYRO_X);
-//			printf("GYRO_Y = %.1f°/s\n", GYRO_Y);
-//			printf("GYRO_Z = %.1f°/s\n\n", GYRO_Z);
+//			printf("ROLL = %.1f°  PITCH = = %.1f°\n", KalmanAngleRoll, KalmanAnglePitch);
 //			printf("TEMP = %.1f°C\n\n\n", TEMP);
+
 
 			Sensor_Data_Ready = FALSE;
 
+			if (contador == 50) {
+				RollRef = KalmanAngleRoll;
+				PitchRef = KalmanAnglePitch;
+				contador++;
+
+			} else if (contador > 50) {
+				if (((KalmanAngleRoll > (RollRef + 10.0))
+						|| (KalmanAngleRoll < (RollRef - 10.0)))
+						|| ((KalmanAnglePitch > (PitchRef + 10.0))
+								|| (KalmanAnglePitch < (PitchRef - 10.0)))) {
+					printf("Estado de mobilidade: 1\n");
+				} else
+					printf("Estado de mobilidade: 0\n");
+
+			} else
+				contador++;
 		}
 
     /* USER CODE END WHILE */
@@ -321,17 +313,28 @@ static void MX_GPIO_Init(void)
 /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin : PC2 */
+  GPIO_InitStruct.Pin = GPIO_PIN_2;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PA7 */
   GPIO_InitStruct.Pin = GPIO_PIN_7;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PD12 */

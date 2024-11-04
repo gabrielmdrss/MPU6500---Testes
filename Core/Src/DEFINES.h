@@ -123,8 +123,8 @@ void kalman_1d(float *KalmanState, float *KalmanUncertainty, float *KalmanInput,
   *KalmanState = *KalmanState + 0.004 * *KalmanInput;
   *KalmanUncertainty = *KalmanUncertainty + 0.004 * 0.004 * 4.0 * 4.0;
 
-  float KalmanGain = *KalmanUncertainty * 1.0/(1.0**KalmanUncertainty + 3.0 * 3.0);
-//  float KalmanGain = 0.5;
+//  float KalmanGain = *KalmanUncertainty * 1.0/(1.0**KalmanUncertainty + 3.0 * 3.0);
+  float KalmanGain = 0.1;
 
   *KalmanState = *KalmanState + KalmanGain * (*KalmanMeasurement - *KalmanState);
   *KalmanUncertainty = (1.0 - KalmanGain) * *KalmanUncertainty;
@@ -132,7 +132,7 @@ void kalman_1d(float *KalmanState, float *KalmanUncertainty, float *KalmanInput,
   Kalman1DOutput[1] = *KalmanUncertainty;
 }
 
-void gyro_signals(void) {
+void inercial_signals(void) {
 	RAW_ACCEL_X = (((uint16_t) Rx_Data[1] << 8) | (Rx_Data[2]));
 	RAW_ACCEL_Y = (((uint16_t) Rx_Data[3] << 8) | (Rx_Data[4]));
 	RAW_ACCEL_Z = (((uint16_t) Rx_Data[5] << 8) | (Rx_Data[6]));
